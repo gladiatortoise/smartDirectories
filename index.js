@@ -1,11 +1,13 @@
 /* 
-directory, dir = path of the smartDir, for example the path of a smartDirectory "c" may be "a/b/c"
-"one" = smartdir = name of the smartDirectory, for example the name of a smartDirectory "c" is "c"
-location = a path for fs, for example the path of a smartDirectory "c" may be "./a/b/c"
+directory, dir = path of a smartdir, for example the path of a smartDirectory "c" may be "a/b/c"
+"One" = smartdir = smartdirectory = name of a smartDirectory, for example the name of a smartDirectory "c" is "c"
+location = a path for filesystem, for example the path of a smartDirectory "c" may be "./a/b/c"
 */
 
 const fs = require('fs');
 const path = require('path');
+const async = require('async');
+
 var config = {};
 
 var ui = {
@@ -117,10 +119,55 @@ var smartDirectory = {
 
     return;
   },
-  callbackFiles: function(directory, first, last, callback) {
-    /* @TODO */
+  date_to_unix: function(date, schema) {
+    /* @TODO "Screenshot_YYYY-MM-DD-hh-mm-ss"}, */
   },
+  callbackFiles: function(directory, first, last, callback) {
+    fs.readdir(path.join(config.settings.global.root_path, directory), (err, files) => {
+      var valid_files = [];
+      var valid_files_in_unix = [];
+      // assuming openFiles is an array of file names
+      async.each(files, function(file, callback) {
+        fs.stat(path.join(path.join(config.settings.global.root_path, directory), file), (err, stat) => {
+          if (err) return callback(err);
+          if (!stat.isDirectory()) {
+            valid_files.push(path.join(path.join(config.settings.global.root_path, directory), file));
+          }
+          callback();
+        });
 
+        console.log(file);
+      }, function(err) {
+        if(err) { return ui.appendNotification(err); }
+
+        var sort_by = config.settings.defaultSmartDirectory.sort_by;
+        /* Convert them into unix-time */
+        valid_files.forEach(function(file) {
+          for (i = 0; i < sort_by.length; i++) {
+            if (this.date_to_unix((file.substr(file.lastIndexOf(`/`) + 1, file.length), sort_by[i])) !== false) {
+              valid_files_in_unix[file] = this.date_to_unix((file.substr(file.lastIndexOf(`/`) + 1, file.length), sort_by[i]));
+              break;
+            }
+          }
+        });
+
+        /* Actual sorting*/
+        valid_files_in_unix.sort(function(a, b) { return a - b; });
+        
+        if (first < last) {
+          for (i = first; i < last; i++) {
+            callback(valid_files_in_unix.charAt(i));
+          }
+        } else {
+          for (i = last; i > first; i--) {
+            callback(valid_files_in_unix.charAt(i));
+          }
+        }
+
+        return;
+      });
+    });
+  },
   goto: function(directory) {
     if (smartDirectory.isOne(directory)) {
       this.currentDirectory = directory;
@@ -147,7 +194,6 @@ var smartDirectory = {
 
     return alert(`Error: ${directory} isn't a valid smartDirectory`);
   }
-
 };
 
 /* Load Config */
@@ -159,6 +205,7 @@ fs.readFile('config.json', 'utf8', function(err, data) {
   } catch(e) {
     return ui.appendNotification(e);
   }
+  /* @TODO check for mandatory configs */
 
   smartDirectory.createNotExistingOnes(function() {
     smartDirectory.callbackOnes(function(directory) {

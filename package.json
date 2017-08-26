@@ -1,5 +1,6 @@
 {
   "name": "smartdirectories",
+  "productName": "smartDirectories",
   "version": "0.0.1",
   "description": "Automatic timeline creator for pictures and text files",
   "main": "main.js",
@@ -8,5 +9,8 @@
   },
   "devDependencies": {
     "electron": "~1.6.2"
+  },
+  "dependencies": {
+    "async": "^2.5.0"
   }
 }
