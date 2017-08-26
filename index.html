@@ -2,17 +2,23 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>autoTimeLine</title>
+    <title>smartDirectories</title>
+    <style>
+      .page {
+        display: none;
+      }
+
+      .inline {
+        display: inline-block;
+      }
+    </style>
   </head>
   <body>
-    <h1>autoTimeLine <script>document.write(process.env.npm_package_version)</script></h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
+    <b>smartDirectories <script>document.write(process.env.npm_package_version)</script></b> <br />
+    tree: <div class="inline tree"> </div> <br />
+    directories: <div class="directories"> </div> <br />
+    notifications: <div class="notifications"> </div> <br />
+    files: <div class="files"> </div> 
   </body>
-
-  <script>
-    require('./index.js');
-  </script>
+  <script src="index.js"></script>
 </html>

@@ -1,6 +1,6 @@
 {
-  "name": "autoTimeLine",
-  "version": "1.0.0",
+  "name": "smartdirectories",
+  "version": "0.0.1",
   "description": "Automatic timeline creator for pictures and text files",
   "main": "main.js",
   "scripts": {
