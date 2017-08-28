@@ -1,18 +1,15 @@
-/* 
-directory, dir = path of a smartdir, for example the path of a smartDirectory "c" may be "a/b/c"
-"One" = smartdir = smartdirectory = name of a smartDirectory, for example the name of a smartDirectory "c" is "c"
-location = a path for filesystem, for example the path of a smartDirectory "c" may be "./a/b/c"
-*/
+'user strict';
 
 const fs = require('fs');
-const path = require('path');
+const pathTool = require('path');
 const async = require('async');
+const datejs = require('datejs');
 
 var config = {};
 
 var ui = {
   clear: function() {
-    document.getElementsByClassName("tree")[0].innerHTML = '';
+    document.getElementsByClassName("navigation")[0].innerHTML = '';
     document.getElementsByClassName("directories")[0].innerHTML = '';
     document.getElementsByClassName("notifications")[0].innerHTML = '';
     document.getElementsByClassName("files")[0].innerHTML = '';
@@ -23,144 +20,183 @@ var ui = {
 
     document.getElementsByClassName("notifications")[0].appendChild(element);
   },
-  appendDirectory: function(directory) {
+  appendDirectory: function(path) {
     var element = document.createElement('span');
-    var smartDir = directory.substr(directory.lastIndexOf(`/`) + 1, directory.length);
-    element.innerHTML = `<p onclick="smartDirectory.goto('${directory}');" style="color:blue">${smartDir}</p>`;
+    element.innerHTML = `<p class="click blue" onclick="smartDirectory.goto('${path}');">${path.pathToFileName()}</p>`;
     document.getElementsByClassName("directories")[0].appendChild(element);
   },
-  appendSmartFile: function(html) {
+  appendFile: function(obj) {
     var element = document.createElement('p');
-    element.innerHTML = html;
-
+    element.innerHTML = obj.html;
     document.getElementsByClassName("files")[0].appendChild(element);
   },
-  appendTree: function(directory) {
+  appendNavigation: function(path) {
+    /* full path */
+    var slash = '';
+    if (path !== '') { slash = '/'; }
     var element = document.createElement('p');
-    element.innerHTML = `/<a onclick="smartDirectory.goto('${directory.substr(0, directory.lastIndexOf(`/`))}');" style="color:blue">..</a>/<a onclick="smartDirectory.goto('');" style="color:blue">root</a>/${directory}`;
+    element.innerHTML = `/<a onclick="smartDirectory.goto('');" class="click blue">root</a>${slash + path}`;
+    document.getElementsByClassName("navigation")[0].appendChild(element);
 
-    document.getElementsByClassName("tree")[0].appendChild(element);
+    /* back-button */
+    element = document.createElement('span');
+    element.innerHTML = `<a onclick="smartDirectory.goto('${path.pathToParent()}');" class="click black">⬑</a>`;
+    document.getElementsByClassName("directories")[0].appendChild(element);
   }
 };
-
 var smartDirectory = {
   currentDirectory: '',
-  isOne: function(directory) {
-    /* Return true if given "directory" is a smart directory */
-    if (config.settings.global.auto_mode === true) {
-      /* If auto-mode is enabled */
-      if (fs.existsSync(path.join(config.settings.global.root_path, directory))) { 
-        if (fs.statSync(path.join(config.settings.global.root_path, directory)).isDirectory()) {
+  filePathToHtml: {
+    default: function(filePath) { return `${filePath.pathToFileName()}:[not supported]`; },
+    img: function(filePath) { return `${filePath.pathToFileName()}:<img src="${filePath.pathToUrl()}">`; },
+    txt: function(filePath) { return `${filePath.pathToFileName()}:<iframe src="${filePath.pathToUrl()}"></iframe>`; },
+
+    png: function(a) { return this.img(a); },
+    jpg: function(a) { return this.img(a); },
+    jpeg: function(a) { return this.img(a); },
+  },
+  /* Return true if $path points to a smartDir */
+  isSmartDirectory: function(path) {
+    if (config.settings.global.autoMode === true) {
+      /* Auto-mode is enabled */
+      if (fs.existsSync(path.pathToUrl())) { 
+        if (fs.statSync(path.pathToUrl()).isDirectory()) {
           return true;
         }
       }
       return false;
     } else {
-      /* If auto-mode is disabled, the directory must be also declared in config */
-      if (settings.hasOwnProperty(directory) && fs.existsSync(path.join(config.settings.global.root_path, directory))) { 
-        if (fs.statSync(path.join(config.settings.global.root_path, directory).isDirectory())) {
+      /* Auto-mode is disabled, the smartDir must be declared in config */
+      if (settings.hasOwnProperty(path) && fs.existsSync(path.pathToUrl())) { 
+        if (fs.statSync(path.pathToUrl()).isDirectory()) {
           return true;
         }
       }
       return false;
     }
   },
-  createNotExistingOnes: function(callback) {
-    /* If some smartDirectories are declared in config but don't exist, create them */
-    for (var directory in config.declaredSmartDirectories) { 
-      if (config.declaredSmartDirectories.hasOwnProperty(directory)) {
-        if (!fs.existsSync(path.join(config.settings.global.root_path, directory))) {
-          fs.mkdirSync(path.join(config.settings.global.root_path, directory));
-          ui.appendNotification("Created " + directory);
+  createNotExistingDirectories: function(callback) {
+    /* Mkdir smartDirs that are declared in config but don't exist */
+
+    for (var path in config.declaredSmartDirectories) { 
+      if (config.declaredSmartDirectories.hasOwnProperty(path)) {
+        if (!fs.existsSync(path.pathToUrl())) {
+          fs.mkdirSync(path.pathToUrl());
+          ui.appendNotification("Created " + path);
         }
       }
     }
 
     return callback();
   },
-  callbackDeclaredOnes: function(callback, directory) {
-    /* If scope directory is not given, set it to default '' (root) */
-    if (directory === undefined) { directory = ''; }
+  callbackDeclaredDirectories: function(callback, path) {
+    /* $callback() each smartDir that's been declared in config AND exists in $path*/
 
-    /* Callback each declared directory */
+    /* Default $path is ''  */
+    if (path === undefined) { path = ''; }
+
+    /* For each directory declared in config */
     for (var dir in config.declaredSmartDirectories) { 
       if (config.declaredSmartDirectories.hasOwnProperty(dir)) {
-        if (directory.substr(0, t.lastIndexOf('/')) === directory) {
+        if (dir.pathToParent() === path) { 
+          /* The directory is located in $path */
           callback(dir);
         }
       }
     }
     return;
   },
-  callbackOnes: function(callback, directory) {
-    /* Callback each directory */
-    var location = config.settings.global.root_path;
-    
-    /* 
-      1. If scope directory is not defined, scope directory is set to '' (root)
-      2. If scope directory is '' (root), don't add a backslash to it
-    */
-    if (directory !== undefined && directory !== '') { location = path.join(location, directory); directory = directory + '/'; } else { directory = ''; }
-    if (config.settings.global.auto_mode === true) {
-      /* If auto-mode is enabled, search for valid directories in "location" */
-      fs.readdirSync(location).filter(smartDir => {
-        if (this.isOne(directory + smartDir)) {
-          callback(directory + smartDir);
+  callbackDirectories: function(callback, path) {
+    /* $callback() each smartDir that exists in $path */
+
+    /* 1. Default $path is '' and if $path is not '' add a slash at the end of it */
+    if (path === undefined || path === '') { path = ''; } else { path = path + '/'; }
+
+    if (config.settings.global.autoMode === true) {
+      /* Auto-mode is enabled, scan for smartDirs in $path */
+      fs.readdirSync(path.pathToUrl()).filter(file => {
+        if (this.isSmartDirectory(path + file)) {
+          var directory = file;
+          callback(path + directory);
         }
       });
     } else {
-      /* If auto-mode is disabled, search for valid diretories in the scope directory */
-      this.callbackDeclaredOnes(smartDir => {
-        if (this.IsOne(directory + smartDir)); {
-          callback(directory + smartDir);
-        }
-      }, directory);
+      /* Auto-mode is disabled, search for smartDirs in $path from config */
+      this.callbackDeclaredDirectories(smartDir => {
+        callback(path + smartDir);
+      }, path);
     }
 
     return;
   },
-  date_to_unix: function(date, schema) {
-    /* @TODO "Screenshot_YYYY-MM-DD-hh-mm-ss"}, */
-  },
-  callbackFiles: function(directory, first, last, callback) {
-    fs.readdir(path.join(config.settings.global.root_path, directory), (err, files) => {
-      var valid_files = [];
-      var valid_files_in_unix = [];
-      // assuming openFiles is an array of file names
-      async.each(files, function(file, callback) {
-        fs.stat(path.join(path.join(config.settings.global.root_path, directory), file), (err, stat) => {
-          if (err) return callback(err);
-          if (!stat.isDirectory()) {
-            valid_files.push(path.join(path.join(config.settings.global.root_path, directory), file));
-          }
-          callback();
-        });
+  callbackFiles: function(callback, first, last, path) {
+    /* $callback() each file that exists in $path */
 
-        console.log(file);
+    fs.readdir(path.pathToUrl(), (err, files) => {
+      var validFiles = [];
+      var validFilesWithTime = [];
+
+      /* For each file in $path */
+      async.each(files, function(file, callback) {
+        fs.stat(pathTool.join(path.pathToUrl(), file), (err, stat) => {
+          if (!stat.isDirectory()) {
+            /* It's a valid file (not a directory) */
+            validFiles.push(pathTool.join(path.pathToUrl(), file));
+          }
+          return callback();
+        });
       }, function(err) {
         if(err) { return ui.appendNotification(err); }
 
-        var sort_by = config.settings.defaultSmartDirectory.sort_by;
-        /* Convert them into unix-time */
-        valid_files.forEach(function(file) {
-          for (i = 0; i < sort_by.length; i++) {
-            if (this.date_to_unix((file.substr(file.lastIndexOf(`/`) + 1, file.length), sort_by[i])) !== false) {
-              valid_files_in_unix[file] = this.date_to_unix((file.substr(file.lastIndexOf(`/`) + 1, file.length), sort_by[i]));
-              break;
+        /* Check for custom settings to sort by */
+        var sortBy = config.settings.defaultSmartDirectory.sortBy;
+        if (config.declaredSmartDirectories[path] !== undefined && config.declaredSmartDirectories[path].sortBy !== undefined) { 
+          sortBy = config.declaredSmartDirectories[path].sortBy; 
+        }
+
+        /* For each file in $validFiles */
+        validFiles.forEach(function(filePath) {
+          /* For each option to sort by */
+          for (i = 0; i < sortBy.length; i++) {
+            var fileNameWithoutExtension = filePath.pathToFileName().removeFileExtension();
+            var fileExtension = filePath.pathToFileName().fileNameToExtension().toLowerCase();
+            var html = smartDirectory.filePathToHtml[fileExtension] ? 
+                       smartDirectory.filePathToHtml[fileExtension](filePath) : 
+                       smartDirectory.filePathToHtml.default(filePath); 
+
+            /* @TODO add a support for prefixes and suffixes like _Screenshot or IMG_ */
+            /* @TODO add a support for flags and hashtags like #cool and @auto-open */
+
+            var date = Date.parseExact(fileNameWithoutExtension, sortBy[i].format); /* => ISO-format*/
+
+            if (date) {
+              /* A date was found in the fileName */
+              unix = date.getTime(); /* ISO-format => unix */
+
+              validFilesWithTime.push({filePath: filePath, hidden: false, html: html, time: unix});
+
+              break; /* sortBy[i] complies  */
+
+            } else {
+              /* sortBy[i] didn't comply */
             }
           }
         });
 
-        /* Actual sorting*/
-        valid_files_in_unix.sort(function(a, b) { return a - b; });
-        
+        /* Sort validFilesWithTime based on unix time */
+        validFilesWithTime.sort(function(a, b) { return a.time - b.time; });
+
+        /* Callback the files in ascending or descending order */
         if (first < last) {
           for (i = first; i < last; i++) {
-            callback(valid_files_in_unix.charAt(i));
+            if (validFilesWithTime[i] === undefined) break;
+            callback(validFilesWithTime[i]);
           }
         } else {
-          for (i = last; i > first; i--) {
-            callback(valid_files_in_unix.charAt(i));
+          for (i = first; i >= last; i--) {
+            if (validFilesWithTime[i] !== undefined) {
+              callback(validFilesWithTime[i]);
+            }
           }
         }
 
@@ -168,49 +204,79 @@ var smartDirectory = {
       });
     });
   },
-  goto: function(directory) {
-    if (smartDirectory.isOne(directory)) {
-      this.currentDirectory = directory;
+  goto: function(path) {
+    /* Go to $path smartDir */
 
+    if (this.isSmartDirectory(path)) {
+      this.currentDirectoryPath = path;
+
+      /* Clear UI before appending elements */
       ui.clear();
 
-      /* Call for each directory in the scope directory */
-      smartDirectory.callbackOnes(function(directory) {
-        /* Append the link to the UI */
-        ui.appendDirectory(directory);
-      }, this.currentDirectory);
+      /* Append navigation */
+      ui.appendNavigation(path);
 
-      /* Call for each file in the scope directory */
-      smartDirectory.callbackFiles(directory, 24, 0, function(file) {
+      /* For each directory in $this.currentDirectoryPath */
+      smartDirectory.callbackDirectories(function(path) {
+        /* Append to the UI */
+        ui.appendDirectory(path);
+      }, this.currentDirectoryPath);
+
+      /* For each file in $this.currentDirectoryPath */
+      smartDirectory.callbackFiles(function(file) {
         /* Append the file to the UI*/
         ui.appendFile(file);
-      });
-
-      /* Append tree */
-      ui.appendTree(directory);
+      }, 0, 24, this.currentDirectoryPath);
 
       return;
     }
-
-    return alert(`Error: ${directory} isn't a valid smartDirectory`);
+    return ui.appendNotification(`Error: ${path} isn't a valid smartDirectory`);
   }
 };
 
-/* Load Config */
-fs.readFile('config.json', 'utf8', function(err, data) {
-  if (err) return ui.appendNotification(err);
-  /* Try to parse */
-  try {
-    config = JSON.parse(data);
-  } catch(e) {
-    return ui.appendNotification(e);
+String.prototype.pathToUrl = function() {
+  return pathTool.join(config.settings.global.rootUrl, String(this));
+};
+String.prototype.urlToPath = function() {
+  console.log('JAA:'+String(this));
+  return "" + String(this).replace(config.settings.global.rootUrl, "");
+};
+String.prototype.pathToFileName = function() {
+  if (String(this).lastIndexOf(`/`) > String(this).lastIndexOf(`\\`)) {
+    return "" + String(this).substr(String(this).lastIndexOf(`/`) + 1, String(this).length);
+  } else {
+    return "" + String(this).substr(String(this).lastIndexOf(`\\`) + 1, String(this).length);
   }
+};
+String.prototype.pathToParent = function() {
+  if (String(this).lastIndexOf(`/`) > String(this).lastIndexOf(`\\`)) {
+    return "" + String(this).substr(0, String(this).lastIndexOf(`/`));
+  } else {
+    return "" + String(this).substr(0, String(this).lastIndexOf(`\\`));
+  }
+};
+String.prototype.removeFileExtension = function() {
+  return "" + String(this).substr(0, String(this).lastIndexOf(`.`));
+};
+String.prototype.removeFileExtensions = function() {
+  return "" + String(this).substr(0, String(this).indexOf(`.`));
+};
+String.prototype.fileNameToExtension = function() {
+  return "" + String(this).substr((String(this).lastIndexOf(`.`) + 1), String(this).length);
+};
+
+fs.readFile('config.json', 'utf8', function(err, data) {
+  /* Load config */
+
+  if (err) return ui.appendNotification(err); 
+  try { config = JSON.parse(data); } catch(e) { return ui.appendNotification(e); }
+
   /* @TODO check for mandatory configs */
 
-  smartDirectory.createNotExistingOnes(function() {
-    smartDirectory.callbackOnes(function(directory) {
-      ui.appendDirectory(directory);
+  smartDirectory.createNotExistingDirectories(function() {
+    ui.appendNavigation('');
+    smartDirectory.callbackDirectories(function(smartDir) {
+      ui.appendDirectory(smartDir);
     });
-    ui.appendTree('');
   });
 });

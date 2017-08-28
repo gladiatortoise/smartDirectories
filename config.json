@@ -1,27 +1,17 @@
 {
   "settings": {
     "global": {
-      "auto_mode": true,
-      "root_path": "./"
+      "autoMode": true,
+      "rootUrl": "./"
     },
     "defaultSmartDirectory": {
-      "sort_by": [
-        {"type": "date", "format": "Dd-Mm-YYYY", "allow_prefixex": true, "allow_suffixes": true},
-        {"type": "date", "format": "YYYY-MM-DD_hh-mm-ss"},
-        {"type": "date", "format": "YYYYMMDD_hhmmss"},
-        {"type": "date", "format": "Screenshot_YYYY-MM-DD-hh-mm-ss"},
-        {"type": "date", "format": "Screenshot_YYYYMMDD-hhmmss"},
-        {"type": "date", "format": "IMG_YYYYMMDD_hhmmss"}
-      ],
-      "combine_files_with_their_text_extended_versions": true,
-      "show_files_on_a_timeline": true,
-      "show_meta_date": true,
-      "prettyprint_date": true
+      "sortBy": [
+        {"type": "date", "format": "d-M-yyyy"}
+      ]
     }
   },
   "declaredSmartDirectories": {
     "photos": {},
     "photos/family": {}
   }
-
 }

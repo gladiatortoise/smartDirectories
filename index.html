@@ -11,14 +11,41 @@
       .inline {
         display: inline-block;
       }
+      
+      .navigation {
+        color:black;
+      }
+
+      .directories {
+        color:blue;
+      }
+
+      .notifications {
+        color:yellow;
+      }
+
+      .files {
+        color:green;
+      }
+
+      .blue {
+        color: blue;
+      }
+
+      .black {
+        color: black;
+      }
+      .click {
+        cursor:pointer;
+      }
     </style>
   </head>
   <body>
     <b>smartDirectories <script>document.write(process.env.npm_package_version)</script></b> <br />
-    tree: <div class="inline tree"> </div> <br />
-    directories: <div class="directories"> </div> <br />
-    notifications: <div class="notifications"> </div> <br />
-    files: <div class="files"> </div> 
+    <div class="navigation"></div>
+    <div class="directories"></div>
+    <div class="notifications"></div>
+    <div class="files"></div> 
   </body>
   <script src="index.js"></script>
 </html>

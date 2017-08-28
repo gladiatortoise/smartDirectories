@@ -1,0 +1,10 @@
+"hideFilesByDefault": true,
+"hideFiles": ["mp4"],
+"showFiles": ["txt", "png"],
+"combineFilesWithTheirTextExtendedVersions": true,
+"showFilesOnTimeline": true,
+"showMetaDate": true,
+"prettyprintDate": true
+
+"allowPrefixes": ["_Screenshot"] / "allowPrefixes": true
+"allowSuffixes": ["_Screenshot"] / "allowPrefixes": true
