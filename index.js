@@ -6,7 +6,6 @@ const async = require('async');
 const datejs = require('datejs');
 
 var config = {};
-
 var ui = {
   clear: function() {
     document.getElementsByClassName("navigation")[0].innerHTML = '';
@@ -17,7 +16,6 @@ var ui = {
   appendNotification: function(html) {
     var element = document.createElement('p');
     element.innerHTML = html;
-
     document.getElementsByClassName("notifications")[0].appendChild(element);
   },
   appendDirectory: function(path) {
@@ -31,14 +29,14 @@ var ui = {
     document.getElementsByClassName("files")[0].appendChild(element);
   },
   appendNavigation: function(path) {
-    /* full path */
+    /* Path navigation */
     var slash = '';
     if (path !== '') { slash = '/'; }
     var element = document.createElement('p');
     element.innerHTML = `/<a onclick="smartDirectory.goto('');" class="click blue">root</a>${slash + path}`;
     document.getElementsByClassName("navigation")[0].appendChild(element);
 
-    /* back-button */
+    /* Back-button */
     element = document.createElement('span');
     element.innerHTML = `<a onclick="smartDirectory.goto('${path.pathToParent()}');" class="click black">⬑</a>`;
     document.getElementsByClassName("directories")[0].appendChild(element);
@@ -47,6 +45,7 @@ var ui = {
 var smartDirectory = {
   currentDirectory: '',
   filePathToHtml: {
+    /* Use file extension and path to create a html-string */
     default: function(filePath) { return `${filePath.pathToFileName()}:[not supported]`; },
     img: function(filePath) { return `${filePath.pathToFileName()}:<img src="${filePath.pathToUrl()}">`; },
     txt: function(filePath) { return `${filePath.pathToFileName()}:<iframe src="${filePath.pathToUrl()}"></iframe>`; },
@@ -55,8 +54,8 @@ var smartDirectory = {
     jpg: function(a) { return this.img(a); },
     jpeg: function(a) { return this.img(a); },
   },
-  /* Return true if $path points to a smartDir */
   isSmartDirectory: function(path) {
+    /* Return true if $path points to a smartDir */
     if (config.settings.global.autoMode === true) {
       /* Auto-mode is enabled */
       if (fs.existsSync(path.pathToUrl())) { 
@@ -77,7 +76,6 @@ var smartDirectory = {
   },
   createNotExistingDirectories: function(callback) {
     /* Mkdir smartDirs that are declared in config but don't exist */
-
     for (var path in config.declaredSmartDirectories) { 
       if (config.declaredSmartDirectories.hasOwnProperty(path)) {
         if (!fs.existsSync(path.pathToUrl())) {
@@ -86,15 +84,12 @@ var smartDirectory = {
         }
       }
     }
-
     return callback();
   },
   callbackDeclaredDirectories: function(callback, path) {
     /* $callback() each smartDir that's been declared in config AND exists in $path*/
-
     /* Default $path is ''  */
     if (path === undefined) { path = ''; }
-
     /* For each directory declared in config */
     for (var dir in config.declaredSmartDirectories) { 
       if (config.declaredSmartDirectories.hasOwnProperty(dir)) {
@@ -126,12 +121,10 @@ var smartDirectory = {
         callback(path + smartDir);
       }, path);
     }
-
     return;
   },
   callbackFiles: function(callback, first, last, path) {
     /* $callback() each file that exists in $path */
-
     fs.readdir(path.pathToUrl(), (err, files) => {
       var validFiles = [];
       var validFilesWithTime = [];
@@ -175,7 +168,7 @@ var smartDirectory = {
 
               validFilesWithTime.push({filePath: filePath, hidden: false, html: html, time: unix});
 
-              break; /* sortBy[i] complies  */
+              break; /* sortBy[i] complied  */
 
             } else {
               /* sortBy[i] didn't comply */
@@ -206,7 +199,6 @@ var smartDirectory = {
   },
   goto: function(path) {
     /* Go to $path smartDir */
-
     if (this.isSmartDirectory(path)) {
       this.currentDirectoryPath = path;
 
@@ -234,6 +226,7 @@ var smartDirectory = {
   }
 };
 
+/* -- String prototypes --*/
 String.prototype.pathToUrl = function() {
   return pathTool.join(config.settings.global.rootUrl, String(this));
 };
@@ -265,14 +258,13 @@ String.prototype.fileNameToExtension = function() {
   return "" + String(this).substr((String(this).lastIndexOf(`.`) + 1), String(this).length);
 };
 
+/* -- "Boot" -- */
 fs.readFile('config.json', 'utf8', function(err, data) {
   /* Load config */
-
   if (err) return ui.appendNotification(err); 
   try { config = JSON.parse(data); } catch(e) { return ui.appendNotification(e); }
 
   /* @TODO check for mandatory configs */
-
   smartDirectory.createNotExistingDirectories(function() {
     ui.appendNavigation('');
     smartDirectory.callbackDirectories(function(smartDir) {
