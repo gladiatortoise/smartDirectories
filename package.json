@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "async": "^2.5.0",
+    "bootstrap": "^3.3.7",
     "datejs": "^1.0.0-rc3"
   }
 }

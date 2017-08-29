@@ -8,3 +8,5 @@
 
 "allowPrefixes": ["_Screenshot"] / "allowPrefixes": true
 "allowSuffixes": ["_Screenshot"] / "allowPrefixes": true
+
+- Add file info "index/all_files"

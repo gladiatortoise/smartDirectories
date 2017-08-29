@@ -1,51 +1,58 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>smartDirectories</title>
-    <style>
-      .page {
-        display: none;
-      }
 
-      .inline {
-        display: inline-block;
-      }
-      
-      .navigation {
-        color:black;
-      }
+<head>
+  <meta charset="UTF-8">
+  <title>smartDirectories</title>
+  <style>
+    body {
+      padding-top: 20px;
+    }
 
-      .directories {
-        color:blue;
-      }
+    .inline-block {
+      display: inline-block;
+    }
 
-      .notifications {
-        color:yellow;
-      }
+    .responsive {
+      width: 100%;
+    }
 
-      .files {
-        color:green;
-      }
+    .blue {
+      color: #373752;
+    }
 
-      .blue {
-        color: blue;
-      }
+    .black {
+      color: black;
+    }
 
-      .black {
-        color: black;
-      }
-      .click {
-        cursor:pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <b>smartDirectories <script>document.write(process.env.npm_package_version)</script></b> <br />
-    <div class="navigation"></div>
-    <div class="directories"></div>
+    .click {
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    if (typeof module === 'object') { window.module = module; module = undefined; }
+  </script>
+  <script src="./lib/jquery.min.js"></script>
+  <script src="./lib/tether.min.js"></script>
+  <script src="./lib/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="./lib/bootstrap.min.css">
+</head>
+
+<body>
+  <div class="col-sm-3">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title navigation"></h3>
+      </div>
+      <div class="panel-body directories">
+      </div>
+    </div>
     <div class="notifications"></div>
-    <div class="files"></div> 
-  </body>
-  <script src="index.js"></script>
+  </div>
+  <div class="col-sm-6">
+    <div class="files"></div>
+  </div>
+</body>
+<script src="index.js"></script>
+
 </html>
