@@ -1,14 +1,14 @@
 # smartDirectories ☄️
 > Explore your files in a chronological order
 
-[![NPM Version][npm-image]][npm-url]
+![npm-image]
 
 - Explore files in a chronological order based on file name
 - Supports all sorts of files and date formats
 - Describe pictures by adding a text file with the same name
 - Tag and organize files better
 
-![](screenshots/screenshot 0.0.4.png)
+![](https://i.imgur.com/kArsAlg.png)
 
 ## Installation
 
@@ -40,3 +40,6 @@ To be implemented:
 - Support for tags and flags in file names
 - Search, order, how many files per page etc.
 - Support for settings shown in roadmap.txt
+
+<!-- Markdown link & img dfn's -->
+[npm-image]: https://img.shields.io/npm/v/datadog-metrics.svg?style=flat-square
