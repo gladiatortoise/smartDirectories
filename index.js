@@ -1,3 +1,4 @@
+/* Gladiatortoise @2017 */
 'user strict';
 
 const fs = require('fs');

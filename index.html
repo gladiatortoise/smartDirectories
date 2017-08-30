@@ -30,7 +30,7 @@
     }
   </style>
   <script>
-    if (typeof module === 'object') { window.module = module; module = undefined; }
+    if (typeof module === 'object') { window.module = module; module = undefined; } /* Electron won't work with bootstrap without this line :( */
   </script>
   <script src="./lib/jquery.min.js"></script>
   <script src="./lib/tether.min.js"></script>

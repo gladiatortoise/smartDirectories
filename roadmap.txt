@@ -9,4 +9,5 @@
 "allowPrefixes": ["_Screenshot"] / "allowPrefixes": true
 "allowSuffixes": ["_Screenshot"] / "allowPrefixes": true
 
-- Add file info "index/all_files"
+- File info "index/all_files"
+- Hide / View images
